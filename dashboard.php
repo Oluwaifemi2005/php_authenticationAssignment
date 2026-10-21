@@ -1,7 +1,20 @@
 
 <?php
-$pageTitle = "Dashboard";
+
 $userName = "Manny";
+
+
+session_start();
+
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['user_key'])) {
+    header("Location: login.php");
+    exit;
+}
+
+$pageTitle = "Dashboard";
+$user = $_SESSION['user_key'];
+$fullname = $user['fn'];
+$email = $user['email'];
 ?>
 
 <!DOCTYPE html>
@@ -27,14 +40,21 @@ $userName = "Manny";
         </header>
 
         <main class="dashboard-content">
-            <h1>Welcome, <?php echo $userName; ?>! 👋</h1>
+            <h1>Welcome, <?php echo htmlspecialchars($fullname); ?>! </h1>
 
             <p>You have successfully reached your dashboard.</p>
 
             <div class="dashboard-card">
                 <h3>Account Overview</h3>
-                <p>Welcome to your personal dashboard.</p>
-                <p>Manage your account and explore your space.</p>
+                <p>
+                    <strong>Name:</strong>
+                    <?php echo htmlspecialchars($fullname); ?>
+                </p>
+
+                <p>
+                    <strong>Email:</strong>
+                    <?php echo htmlspecialchars($email); ?>
+                </p>
             </div>
 
             <div class="dashboard-actions">

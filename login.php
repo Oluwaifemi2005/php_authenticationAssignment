@@ -1,6 +1,26 @@
 
 <?php
 $pageTitle = "Login";
+session_start();
+
+$errMessage = "";
+if (isset($_POST['email'], $_POST['password'])) {
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+
+    if (isset($_SESSION['user_key']) && $email === $_SESSION['user_key']['email'] && $password === $_SESSION['user_key']['password']) {
+        $_SESSION['logged_in'] = true;
+        header("Location: dashboard.php");
+        exit;
+        }
+        else{
+            $errMessage = "Invalid Credientials";
+        }
+}
+// if (isset($_SESSION['user_key'])) {
+//     $user = $_SESSION['user_key'];
+//     print_r($user);
+// }
 ?>
 
 <!DOCTYPE html>
@@ -16,6 +36,11 @@ $pageTitle = "Login";
     <div class="container">
         <h1>Welcome Back</h1>
         <p>Login to access your account.</p>
+
+
+        <?php if (!empty($errMessage)) { ?>
+            <p style="color: red"><?php echo htmlspecialchars($errMessage) ?></p>
+        <?php } ?>
 
         <form action="" method="post">
 
