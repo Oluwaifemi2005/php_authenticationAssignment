@@ -49,15 +49,35 @@ if (isset($_POST['signupBtn'])) {
         // echo "<br>";
         // echo "Password: $password";
 
-        session_start();
-        // $_SESSION['fn'] = $fn;
-        // $_SESSION['email'] = $email;
-        // $_SESSION['password'] = $password;
+        // session_start();
+        // // $_SESSION['fn'] = $fn;
+        // // $_SESSION['email'] = $email;
+        // // $_SESSION['password'] = $password;
     
-        $user = ["fn" => $fn, "email" => $email, "password" => $password];
+        // $user = ["fn" => $fn, "email" => $email, "password" => $password];
     
-        $_SESSION['user_key'] = $user;
-        header("Location: login.php");
+        // $_SESSION['user_key'] = $user;
+        // header("Location: login.php");
+
+
+
+
+        $connection = mysqli_connect("localhost", "root", "", "manny_bank");
+        if (!$connection) {
+            echo "Database could not connect" . mysqli_error($connection);
+        }else{
+            echo "Database connected";
+        }
+
+        $query = "INSERT INTO users (full_name, email, password) VALUES ('$fn', '$email', '$password')";
+        $response = mysqli_query($connection, $query);
+        if (!$response) {
+            echo "Something went wrong". mysqli_error($connection);
+
+        }else{
+            echo "User created successfully";
+            header("Location: login.php");
+        }
     }
 
     

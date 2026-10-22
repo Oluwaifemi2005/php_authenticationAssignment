@@ -18,6 +18,8 @@ if (isset($_GET['error'])) {
 }
 
 
+
+
 // if (isset($_POST['signupBtn'])) {
 //     $fn = $_POST['fullname'];
 //     $email = $_POST['email'];
