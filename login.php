@@ -4,23 +4,43 @@ $pageTitle = "Login";
 session_start();
 
 $errMessage = "";
+
+$connection = mysqli_connect("localhost", "root", "", "manny_bank");
+if (!$connection) {
+    die("Database connection failed");
+}
+
+
 if (isset($_POST['email'], $_POST['password'])) {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    if (isset($_SESSION['user_key']) && $email === $_SESSION['user_key']['email'] && $password === $_SESSION['user_key']['password']) {
-        $_SESSION['logged_in'] = true;
-        header("Location: dashboard.php");
-        exit;
+    $query = "SELECT * FROM users WHERE email = '$email'";
+    $result = mysqli_query($connection, $query);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+
+        if ($password === $user['password']) {
+            $_SESSION['logged_in'] = true;
+            $_SESSION['user_id'] = $user['id'];
+
+
+            header("Location: dashboard.php");
+            exit;
+        }else{
+            $errMessage = "Invalid credentials";
         }
-        else{
-            $errMessage = "Invalid Credientials";
-        }
+    }else{
+        $errMessage = "Invalid credentials";
+    }
 }
 // if (isset($_SESSION['user_key'])) {
 //     $user = $_SESSION['user_key'];
 //     print_r($user);
 // }
+
+mysqli_close($connection);
 ?>
 
 <!DOCTYPE html>

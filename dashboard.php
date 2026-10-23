@@ -1,21 +1,38 @@
 
+
 <?php
-
-$userName = "Manny";
-
-
 session_start();
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['user_key'])) {
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
 $pageTitle = "Dashboard";
-$user = $_SESSION['user_key'];
-$fullname = $user['fn'];
+
+$connection = mysqli_connect("localhost", "root", "", "manny_bank");
+
+if (!$connection) {
+    die("Database connection failed");
+}
+
+$userId = (int) $_SESSION['user_id'];
+
+$query = "SELECT full_name, email FROM users WHERE id = $userId";
+$result = mysqli_query($connection, $query);
+
+if (!$result || mysqli_num_rows($result) === 0) {
+    die("User not found");
+}
+
+$user = mysqli_fetch_assoc($result);
+
+$fullname = $user['full_name'];
 $email = $user['email'];
+
+mysqli_close($connection);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
