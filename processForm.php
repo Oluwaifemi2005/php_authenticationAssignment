@@ -62,12 +62,14 @@ if (isset($_POST['signupBtn'])) {
 
 
 
-        $connection = mysqli_connect("localhost", "root", "", "manny_bank");
-        if (!$connection) {
-            echo "Database could not connect" . mysqli_error($connection);
-        }else{
-            echo "Database connected";
-        }
+        // $connection = mysqli_connect("localhost", "root", "", "manny_bank");
+        // if (!$connection) {
+        //     echo "Database could not connect" . mysqli_error($connection);
+        // }else{
+        //     echo "Database connected";
+        // }
+
+        include "connectdb.php";
 
         $query = "INSERT INTO users (full_name, email, password) VALUES ('$fn', '$email', '$password')";
         $response = mysqli_query($connection, $query);

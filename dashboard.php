@@ -10,11 +10,13 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset(
 
 $pageTitle = "Dashboard";
 
-$connection = mysqli_connect("localhost", "root", "", "manny_bank");
+// $connection = mysqli_connect("localhost", "root", "", "manny_bank");
 
-if (!$connection) {
-    die("Database connection failed");
-}
+// if (!$connection) {
+//     die("Database connection failed");
+// }
+
+include "connectdb.php";
 
 $userId = (int) $_SESSION['user_id'];
 

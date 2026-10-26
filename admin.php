@@ -46,8 +46,8 @@ if (!$result) {
 
                         <td>
                             <a href="view.php?id=<?php echo (int) $user['id']; ?>">view</a>
-                            <a href="view.php?id=<?php echo (int) $user['id']; ?>">Edit</a>
-                            <a href="view.php?id=<?php echo (int) $user['id']; ?>">Delete</a>
+                            <a href="edit.php?id=<?php echo (int) $user['id']; ?>">Edit</a>
+                            <a href="delete.php?id=<?php echo (int) $user['id']; ?>">Delete</a>
                         </td>
                     </tr>
                 <?php } ?>
