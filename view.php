@@ -1,5 +1,17 @@
 <?php
 if (isset($_GET['id'])) {
+    session_start();
+
+// Check admin access
+if (
+    !isset($_SESSION['logged_in']) ||
+    $_SESSION['logged_in'] !== true ||
+    !isset($_SESSION['role']) ||
+    $_SESSION['role'] !== 'admin'
+) {
+    header("Location: dashboard.php");
+    exit;
+}
     
     // 1. Force the ID to be an integer for an extra layer of safety
     $userID = (int)$_GET['id'];

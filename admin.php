@@ -1,5 +1,23 @@
 <?php  
 $pageTitle = "Admin Dashboard";
+
+session_start();
+
+if (
+    !isset($_SESSION['logged_in']) ||
+    $_SESSION['logged_in'] !== true ||
+    !isset($_SESSION['role']) ||
+    $_SESSION['role'] !== 'admin'
+) {
+    header("Location: dashboard.php");
+    exit;
+}
+
+
+
+
+
+
 $connection = mysqli_connect("localhost", "root", "", "manny_bank");
 
 if (!$connection) {
@@ -47,7 +65,14 @@ if (!$result) {
                         <td>
                             <a href="view.php?id=<?php echo (int) $user['id']; ?>">view</a>
                             <a href="edit.php?id=<?php echo (int) $user['id']; ?>">Edit</a>
-                            <a href="delete.php?id=<?php echo (int) $user['id']; ?>">Delete</a>
+                            <form action="delete.php" method="post"
+                                onsubmit="return confirm('Are you sure you want to delete this user?');">
+
+                                <input type="hidden" name="userID"
+                                    value="<?php echo (int) $user['id']; ?>">
+
+                                <button type="submit" name="deleteUser">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 <?php } ?>
