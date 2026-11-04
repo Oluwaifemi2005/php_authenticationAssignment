@@ -1,58 +1,48 @@
 <?php
+
+session_start();
+
+include "connectdb.php";
+include "is_admin.php";
+
+// Check whether an ID was provided
 if (isset($_GET['id'])) {
-    session_start();
 
-// Check admin access
-if (
-    !isset($_SESSION['logged_in']) ||
-    $_SESSION['logged_in'] !== true ||
-    !isset($_SESSION['role']) ||
-    $_SESSION['role'] !== 'admin'
-) {
-    header("Location: dashboard.php");
-    exit;
-}
-    
-    // 1. Force the ID to be an integer for an extra layer of safety
-    $userID = (int)$_GET['id'];
+    $userID = (int) $_GET['id'];
 
-    include "connectdb.php";
-    
-    // 2. Use placeholders (?) instead of variables directly in the query
-    $query = "SELECT * FROM users WHERE id = ?";
-    
-    // 3. Prepare the statement
-    if ($stmt = mysqli_prepare($connection, $query)) {
-        
-        // Bind the integer ID to the placeholder
+    // Fetch the selected user's information
+    $query = "SELECT id, full_name, email FROM users WHERE id = ?";
+
+    $stmt = mysqli_prepare($connection, $query);
+
+    if ($stmt) {
+
         mysqli_stmt_bind_param($stmt, "i", $userID);
-        
-        // Execute the query
+
         mysqli_stmt_execute($stmt);
-        
-        // Get the result set
+
         $result = mysqli_stmt_get_result($stmt);
 
-        // 4. Check if a user was actually found
         if ($result && mysqli_num_rows($result) > 0) {
+
             $user = mysqli_fetch_assoc($result);
+
         } else {
             echo "User not found.";
             exit;
         }
-        
-        // Close the statement
+
         mysqli_stmt_close($stmt);
-        
+
     } else {
-        echo "Failed to prepare the SQL statement: " . mysqli_error($connection);
-        exit;
+        die("Failed to prepare the SQL statement.");
     }
-    
+
 } else {
     echo "No ID provided in the URL.";
     exit;
 }
+
 ?>
 
 <!DOCTYPE html>

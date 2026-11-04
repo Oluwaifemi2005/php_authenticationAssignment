@@ -1,37 +1,91 @@
-
 <?php
 session_start();
-echo $_SESSION['role'];
+include "connectdb.php";
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true || !isset($_SESSION['user_id'])) {
+if (!isset($_SESSION['user_key'])) {
     header("Location: login.php");
     exit;
 }
 
-$pageTitle = "Dashboard";
+$user = $_SESSION['user_key'];
+$userToken = $user['token'];
 
-// $connection = mysqli_connect("localhost", "root", "", "manny_bank");
+// Verify token in database
+$query = "SELECT user_id, token_expiration
+          FROM tokens
+          WHERE token = ?";
 
-// if (!$connection) {
-//     die("Database connection failed");
-// }
+$stmt = mysqli_prepare($connection, $query);
+mysqli_stmt_bind_param($stmt, "s", $userToken);
+mysqli_stmt_execute($stmt);
 
-include "connectdb.php";
+$result = mysqli_stmt_get_result($stmt);
 
-$userId = (int) $_SESSION['user_id'];
+if (mysqli_num_rows($result) === 0) {
+    session_unset();
+    session_destroy();
 
-$query = "SELECT full_name, email FROM users WHERE id = $userId";
-$result = mysqli_query($connection, $query);
-
-if (!$result || mysqli_num_rows($result) === 0) {
-    die("User not found");
+    header("Location: login.php");
+    exit;
 }
 
-$user = mysqli_fetch_assoc($result);
+$tokenData = mysqli_fetch_assoc($result);
 
-$fullname = $user['full_name'];
-$email = $user['email'];
+// Check token expiration
+if (time() >= (int) $tokenData['token_expiration']) {
 
+    // Delete expired token
+    $deleteQuery = "DELETE FROM tokens WHERE token = ?";
+    $deleteStmt = mysqli_prepare($connection, $deleteQuery);
+
+    mysqli_stmt_bind_param($deleteStmt, "s", $userToken);
+    mysqli_stmt_execute($deleteStmt);
+    mysqli_stmt_close($deleteStmt);
+
+    session_unset();
+    session_destroy();
+
+    header("Location: login.php?error=expired");
+    exit;
+}
+
+// Confirm token belongs to the user in the session
+if ((int) $tokenData['user_id'] !== (int) $user['user_id']) {
+    session_unset();
+    session_destroy();
+
+    header("Location: login.php");
+    exit;
+}
+
+// Fetch current user information and role from database
+$userId = (int) $tokenData['user_id'];
+
+$query = "SELECT id, full_name, email, role
+          FROM users
+          WHERE id = ?";
+
+$stmt = mysqli_prepare($connection, $query);
+mysqli_stmt_bind_param($stmt, "i", $userId);
+mysqli_stmt_execute($stmt);
+
+$result = mysqli_stmt_get_result($stmt);
+
+if (mysqli_num_rows($result) === 0) {
+    session_unset();
+    session_destroy();
+
+    header("Location: login.php");
+    exit;
+}
+
+$dbUser = mysqli_fetch_assoc($result);
+
+$fullname = $dbUser['full_name'];
+$email = $dbUser['email'];
+$pageTitle = "Dashboard";
+
+mysqli_stmt_close($stmt);
 mysqli_close($connection);
 ?>
 

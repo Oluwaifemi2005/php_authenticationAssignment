@@ -1,34 +1,21 @@
-<?php  
-$pageTitle = "Admin Dashboard";
+<?php
 
 session_start();
 
-if (
-    !isset($_SESSION['logged_in']) ||
-    $_SESSION['logged_in'] !== true ||
-    !isset($_SESSION['role']) ||
-    $_SESSION['role'] !== 'admin'
-) {
-    header("Location: dashboard.php");
-    exit;
-}
+$pageTitle = "Admin Dashboard";
 
+include "connectdb.php";
+include "is_admin.php";
 
-
-
-
-
-$connection = mysqli_connect("localhost", "root", "", "manny_bank");
-
-if (!$connection) {
-    die("Database connection failed");
-}
+// Fetch all users
 $query = "SELECT id, full_name, email FROM users";
+
 $result = mysqli_query($connection, $query);
 
 if (!$result) {
     die("Could not fetch users");
 }
+
 ?>
 
 

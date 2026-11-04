@@ -1,47 +1,84 @@
 
 <?php
 $pageTitle = "Login";
+
 session_start();
+include "connectdb.php";
 
 $errMessage = "";
 
-$connection = mysqli_connect("localhost", "root", "", "manny_bank");
-if (!$connection) {
-    die("Database connection failed");
-}
-
-
 if (isset($_POST['email'], $_POST['password'])) {
-    $email = $_POST['email'];
+
+    $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    $query = "SELECT * FROM users WHERE email = '$email'";
-    $result = mysqli_query($connection, $query);
+    // Find the user
+    $query = "SELECT id, email, password FROM users WHERE email = ?";
 
-    if ($result && mysqli_num_rows($result) > 0) {
+    $stmt = mysqli_prepare($connection, $query);
+    mysqli_stmt_bind_param($stmt, "s", $email);
+    mysqli_stmt_execute($stmt);
+
+    $result = mysqli_stmt_get_result($stmt);
+
+    if ($result && mysqli_num_rows($result) === 1) {
+
         $user = mysqli_fetch_assoc($result);
 
+        // Check password
         if ($password === $user['password']) {
-            $_SESSION['logged_in'] = true;
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['role'] = $user['role'];
 
+            // Generate token
+            $token = bin2hex(random_bytes(32));
 
-            header("Location: dashboard.php");
-            exit;
-        }else{
+            // Set expiration to 3 minutes
+            $tokenExpiration = time() + 180;
+
+            // Save token in database
+            $tokenQuery = "INSERT INTO tokens
+                (user_id, token, token_expiration)
+                VALUES (?, ?, ?)";
+
+            $tokenStmt = mysqli_prepare($connection, $tokenQuery);
+
+            mysqli_stmt_bind_param(
+                $tokenStmt,
+                "isi",
+                $user['id'],
+                $token,
+                $tokenExpiration
+            );
+
+            if (mysqli_stmt_execute($tokenStmt)) {
+
+                // Store token in session
+                session_regenerate_id(true);
+
+                $_SESSION['user_key'] = [
+                    "user_id" => $user['id'],
+                    "email" => $user['email'],
+                    "token" => $token
+                ];
+                // echo "Login successful. Token saved: " . $_SESSION['user_key']['token'];
+                header("Location: dashboard.php");
+                exit;
+
+            } else {
+                $errMessage = "Could not create login session.";
+            }
+
+            mysqli_stmt_close($tokenStmt);
+
+        } else {
             $errMessage = "Invalid credentials";
         }
-    }else{
+
+    } else {
         $errMessage = "Invalid credentials";
     }
-}
-// if (isset($_SESSION['user_key'])) {
-//     $user = $_SESSION['user_key'];
-//     print_r($user);
-// }
 
-mysqli_close($connection);
+    mysqli_stmt_close($stmt);
+}
 ?>
 
 <!DOCTYPE html>
@@ -94,3 +131,31 @@ mysqli_close($connection);
 
 </body>
 </html>
+
+
+
+
+
+<!-- echo "<br>";
+echo random_bytes(16);
+echo bin2hex("My name is Emmanuel");
+echo "<br>";
+echo hex2bin("4d79206e616d6520697320456d6d616e75656c");
+echo "<br>";
+// echo time();
+
+$token = bin2hex(random_bytes(16));
+echo "$token";
+$token_exp = time() + 180;
+
+// in database create a token table with columns: user_id token and token_expiration
+$token_query = "INSERT INTO tokens (user_id, token, token_expiration) VALUES"
+?>
+
+
+// bin2hex random_bytes time() -->
+
+
+
+
+

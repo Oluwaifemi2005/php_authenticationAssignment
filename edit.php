@@ -1,23 +1,13 @@
-
 <?php
+
 session_start();
 
-// Check admin access
-if (
-    !isset($_SESSION['logged_in']) ||
-    $_SESSION['logged_in'] !== true ||
-    !isset($_SESSION['role']) ||
-    $_SESSION['role'] !== 'admin'
-) {
-    header("Location: dashboard.php");
-    exit;
-}
-
 include "connectdb.php";
+include "is_admin.php";
 
 $errMessage = "";
 
-// Get user ID from URL
+// Get user ID from URL or submitted form
 if (isset($_GET['id'])) {
     $userID = (int) $_GET['id'];
 } elseif (isset($_POST['userID'])) {
@@ -28,39 +18,61 @@ if (isset($_GET['id'])) {
 
 // Update user when form is submitted
 if (isset($_POST['editUser'])) {
+
     $fn = trim($_POST['fullname']);
     $email = trim($_POST['email']);
 
     $query = "UPDATE users SET full_name = ?, email = ? WHERE id = ?";
 
     $stmt = mysqli_prepare($connection, $query);
-    mysqli_stmt_bind_param($stmt, "ssi", $fn, $email, $userID);
 
-    if (mysqli_stmt_execute($stmt)) {
+    if ($stmt) {
+
+        mysqli_stmt_bind_param($stmt, "ssi", $fn, $email, $userID);
+
+        if (mysqli_stmt_execute($stmt)) {
+
+            mysqli_stmt_close($stmt);
+
+            header("Location: admin.php");
+            exit;
+
+        } else {
+            $errMessage = "Error updating user.";
+        }
+
         mysqli_stmt_close($stmt);
-        header("Location: admin.php");
-        exit;
+
     } else {
-        $errMessage = "Error updating user";
+        $errMessage = "Could not prepare the update query.";
     }
 }
 
-// Fetch user details
+// Fetch the user's current details
 $query = "SELECT id, full_name, email FROM users WHERE id = ?";
 
 $stmt = mysqli_prepare($connection, $query);
+
+if (!$stmt) {
+    die("Could not prepare the user query.");
+}
+
 mysqli_stmt_bind_param($stmt, "i", $userID);
+
 mysqli_stmt_execute($stmt);
 
 $result = mysqli_stmt_get_result($stmt);
 
-if (mysqli_num_rows($result) > 0) {
+if ($result && mysqli_num_rows($result) > 0) {
+
     $user = mysqli_fetch_assoc($result);
+
 } else {
-    die("User not found");
+    die("User not found.");
 }
 
 mysqli_stmt_close($stmt);
+
 ?>
 
 <!DOCTYPE html>
