@@ -1,0 +1,17 @@
+{
+    "name": "apple/php-auth-system-assignment",
+    "autoload": {
+        "psr-4": {
+            "Apple\\PhpAuthSystemAssignment\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Alo Emmanuel Oluwanifemi",
+            "email": "aloemmanuel2005@gmail.com"
+        }
+    ],
+    "require": {
+        "nesbot/carbon": "^3.15"
+    }
+}
