@@ -1,4 +1,13 @@
 <?php 
+    session_start();
+
+    if (!isset($_SESSION['user_key'])) {
+        header("Location: login.php");
+        exit;
+    }
+    $user = $_SESSION['user_key'];
+    $id = $user['user_id'];
+
     include ("connectdb.php");
     $path = "images/";
     $is_uploaded = false;
@@ -14,31 +23,34 @@
             echo "<br>";
             echo "Image is too large, upload a smaller image";
         }
-        $image_name = strtolower($image_name). time();
+        $ext = strtolower(pathinfo($image_name, PATHINFO_EXTENSION));
+        $new_name = time() . "_" . uniqid() . "." . $ext;
+        // $image_name = strtolower($image_name). time();  this will not work because it turns the photo into photo.jpg1731340000 and removes the .jpg tag
         echo "<br>";
-        echo $image_name;
 
-        $file = $path . $image_name;  // this is what is saved in the database
+        $file = $path . $new_name;  // this is what is saved in the database
         if (move_uploaded_file($_FILES['img']['tmp_name'], $file)) {
-            echo "<br>";
-            echo "Image uploaded successfully";
-            $is_uploaded = true;
 
             // write a query that put the path in the database
              // 4. Execute the query safely using a prepared statement
-            $query = $query = "UPDATE users SET profile_picture = ? WHERE id = ?";
+            $query = "UPDATE users SET profile_picture = ? WHERE id = ?";
             $stmt = mysqli_prepare($connection, $query);
-            mysqli_stmt_bind_param($stmt, "s", $file);
-            mysqli_stmt_execute($stmt);
-            $result = mysqli_stmt_get_result($stmt);
+            mysqli_stmt_bind_param($stmt, "si", $file, $id);
 
-            if ($result) {
-                echo "Image path saved to database!";
-                $is_uploaded = true;
+            if (mysqli_stmt_execute($stmt)) {
+                if (mysqli_stmt_affected_rows($stmt) > 0) {
+                    echo "<br>";
+                    echo "Profile picture updated successfully.";
+                    $is_uploaded = true;
+                    
+                }else{
+                    echo "No changes made (user not found or picture is identical).";
+                }
+                
             } else {
                 echo "Database error: " . $stmt->error;
             }
-            $stmt->close();
+            mysqli_stmt_close($stmt);
             }
     }
 ?>
